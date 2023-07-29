@@ -14,6 +14,11 @@ Parameters:
     Type: AWS::EC2::Image::Id
     Default: ami-024e6efaf93d85776
 
+  RoleName:
+    Description: IAM Role to allow EC2 instances to access ECR
+    Type: String
+    Default: EC2_ECR
+
 Resources:  
   MyLaunchConfiguration:
     Type: "AWS::AutoScaling::LaunchConfiguration"
@@ -23,25 +28,25 @@ Resources:
       KeyName: !Ref KeyName
       SecurityGroups:
         - "sg-a7f988c5"
+      IamInstanceProfile: !Ref RoleName
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
           sudo apt-get update -y
-          sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common apache2
-          echo "Version: 1.0.11" | sudo tee /var/www/html/index.html
-          sudo systemctl restart apache2
+          sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common unzip
+          curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
           curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
           sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
           sudo apt-get update
           sudo apt-get install -y docker-ce
           sudo systemctl start docker
           sudo systemctl enable docker
-          sudo docker run -d -p 3000:3000 grafana/grafana
-          docker run cloudflare/cloudflared:latest tunnel --no-autoupdate run --token $_Token
-          wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh &
-          wait
-          sh /tmp/netdata-kickstart.sh --nightly-channel --claim-token jkrulZscAyB25zUs1dg4HIuI3LOu-5LXqgQRY7tZku9wIwpxdFHjS-iJKQ7GW-WLlBkHtoOYNLtKUvkPqYag6w7ckRPhLz5oQtRHaWn1fKub5zC-08zt_7Tuc5R2Pfriy7grJ4o --claim-rooms 3fa28e8f-9668-4516-a068-989249586164 --claim-url https://app.netdata.cloud    
-  
+          $(aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 693505164922.dkr.ecr.us-east-2.amazonaws.com)
+          sudo docker pull 693505164922.dkr.ecr.us-east-2.amazonaws.com/simple-website:latest
+          sudo docker run -d -p 80:80 693505164922.dkr.ecr.us-east-2.amazonaws.com/simple-website:latest
+
   MyAutoScalingGroup:
     Type: "AWS::AutoScaling::AutoScalingGroup"
     Properties:
