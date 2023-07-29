@@ -1,0 +1,91 @@
+Parameters:
+  InstanceType:
+    Description: micro ec2 instance with health checks
+    Type: String
+    Default: t2.micro
+
+  KeyName:
+    Description: stefano's keypair
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: stefano-us-east-2
+
+  ImageId:
+    Description: aws Image ID for this instance
+    Type: AWS::EC2::Image::Id
+    Default: ami-024e6efaf93d85776
+
+Resources:  
+  MyLaunchConfiguration:
+    Type: "AWS::AutoScaling::LaunchConfiguration"
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref ImageId
+      KeyName: !Ref KeyName
+      SecurityGroups:
+        - "sg-a7f988c5"
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          sudo apt-get update -y
+          sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common apache2
+          echo "Version: 1.0.0" | sudo tee /var/www/html/index.html
+          sudo systemctl restart apache2
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+          sudo apt-get update
+          sudo apt-get install -y docker-ce
+          sudo systemctl start docker
+          sudo systemctl enable docker
+          sudo docker run -d -p 3000:3000 grafana/grafana
+          docker run cloudflare/cloudflared:latest tunnel --no-autoupdate run --token $_Token
+          bash <(curl -Ss https://my-netdata.io/kickstart.sh) --dont-wait
+
+  MyAutoScalingGroup:
+    Type: "AWS::AutoScaling::AutoScalingGroup"
+    Properties:
+      AvailabilityZones:
+        - "us-east-2a"
+        - "us-east-2b"
+      MinSize: "2"
+      MaxSize: "4"
+      DesiredCapacity: "2"
+      HealthCheckType: EC2
+      LaunchConfigurationName: !Ref MyLaunchConfiguration
+      TargetGroupARNs: 
+        - !Ref MyTargetGroup
+      
+  MyLoadBalancer:
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties: 
+      Subnets:
+        - "subnet-feced596"
+        - "subnet-c7dc8dbd"
+        - "subnet-52d9611e"
+      SecurityGroups: 
+        - "sg-a7f988c5"
+
+  MyTargetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: "/"
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 5
+      UnhealthyThresholdCount: 2
+      Matcher:
+        HttpCode: '200'
+      Port: 80
+      Protocol: HTTP
+      VpcId: "vpc-73cb3818"
+      TargetType: "instance"
+
+  MyListener:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties: 
+      LoadBalancerArn: !Ref MyLoadBalancer
+      Protocol: HTTP
+      Port: 80
+      DefaultActions: 
+        - Type: forward
+          TargetGroupArn: !Ref MyTargetGroup
