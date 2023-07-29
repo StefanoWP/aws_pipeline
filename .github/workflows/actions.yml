@@ -22,7 +22,7 @@ jobs:
 
     - name: Update version in the CloudFormation template
       run: |
-        sed -i 's/Version: 1.0.0/Version: 1.0.1/g' cloudformation.yaml
+        sed -i 's/Version: 1.0.0/Version: 1.0.1/g' cloudformation.yml
 
     - name: Commit changes
       run: |
