@@ -38,8 +38,10 @@ Resources:
           sudo systemctl enable docker
           sudo docker run -d -p 3000:3000 grafana/grafana
           docker run cloudflare/cloudflared:latest tunnel --no-autoupdate run --token $_Token
-          bash <(curl -Ss https://my-netdata.io/kickstart.sh) --dont-wait
-
+          wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh &
+          wait
+          sh /tmp/netdata-kickstart.sh --nightly-channel --claim-token jkrulZscAyB25zUs1dg4HIuI3LOu-5LXqgQRY7tZku9wIwpxdFHjS-iJKQ7GW-WLlBkHtoOYNLtKUvkPqYag6w7ckRPhLz5oQtRHaWn1fKub5zC-08zt_7Tuc5R2Pfriy7grJ4o --claim-rooms 3fa28e8f-9668-4516-a068-989249586164 --claim-url https://app.netdata.cloud    
+  
   MyAutoScalingGroup:
     Type: "AWS::AutoScaling::AutoScalingGroup"
     Properties:
