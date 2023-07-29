@@ -6,3 +6,5 @@ This repository has a CloudFormation template for deploying an EC2 AutoScaling g
 The web server serves a simple web page that displays the version number of the deployment. 
 This version number is updated automatically whenever changes are made to the repository, 
 using a CI/CD pipeline implemented with GitHub Actions.
+
+Testing
