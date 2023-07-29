@@ -1,0 +1,39 @@
+name: Version Update
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-2
+
+    - name: Update newest version on the Apache server
+      run: |
+        sed -i 's/Version: 1.0.0/Version: 1.0.1/g' template.yaml
+
+    - name: Commit changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git commit -am "Update version to 1.0.1"
+
+    - name: Push changes
+      run: |
+        git push
+
+    - name: Deploy updated template
+      run: |
+        aws cloudformation update-stack --stack-name stefanos --template-body file://actions.yaml --parameters ParameterKey=InstanceType,ParameterValue=t2.micro ParameterKey=KeyName,ParameterValue=stefano-us-east-2 ParameterKey=ImageId,ParameterValue=ami-024e6efaf93d85776
