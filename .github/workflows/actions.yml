@@ -36,4 +36,4 @@ jobs:
 
     - name: Deploy updated template
       run: |
-        aws cloudformation update-stack --stack-name stefano --template-body file://cloudformation.yaml --parameters ParameterKey=InstanceType,ParameterValue=t2.micro ParameterKey=KeyName,ParameterValue=stefano-us-east-2 ParameterKey=ImageId,ParameterValue=ami-024e6efaf93d85776
+        aws cloudformation update-stack --stack-name stefano --template-body file://cloudformation.yml --parameters ParameterKey=InstanceType,ParameterValue=t2.micro ParameterKey=KeyName,ParameterValue=stefano-us-east-2 ParameterKey=ImageId,ParameterValue=ami-024e6efaf93d85776
