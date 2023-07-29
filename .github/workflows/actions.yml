@@ -1,4 +1,4 @@
-name: Version Update
+name: Update version
 
 on:
   push:
@@ -20,9 +20,9 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
 
-    - name: Update newest version on the Apache server
+    - name: Update version in the CloudFormation template
       run: |
-        sed -i 's/Version: 1.0.0/Version: 1.0.1/g' template.yaml
+        sed -i 's/Version: 1.0.0/Version: 1.0.1/g' cloudformation.yaml
 
     - name: Commit changes
       run: |
