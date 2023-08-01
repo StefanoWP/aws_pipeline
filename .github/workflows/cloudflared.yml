@@ -2,6 +2,7 @@
 # getManagementToken will make a call to the Cloudflare API to acquire the management token for the requested tunnel
 # which then will run a specific tunnel that already created your account.
 # Or will create the initial tunnel connection, or will make a new tunnel resplica
+# https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/install-and-setup/deploy-cloudflared-replicas/#cloudflared-replicas
 name: docker run cloudflared
 on: [push]
 
