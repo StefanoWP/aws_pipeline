@@ -1,3 +1,7 @@
+# pass the cloudflared tunnel token into AWS EC2 with the cloudformation.yml. 
+# getManagementToken will make a call to the Cloudflare API to acquire the management token for the requested tunnel
+# which then will run a specific tunnel that already created your account.
+# Or will create the initial tunnel connection, or will make a new tunnel resplica
 name: docker run cloudflared
 on: [push]
 
