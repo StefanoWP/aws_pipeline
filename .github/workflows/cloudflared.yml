@@ -1,0 +1,9 @@
+name: docker run cloudflared
+on: [push]
+
+jobs:
+  docker_run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ocker run cloudflared
+        run: docker run cloudflare/cloudflared:latest tunnel --no-autoupdate run --token ${{ secrets.TUN_AWS }}
